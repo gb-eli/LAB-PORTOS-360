@@ -1,0 +1,23 @@
+.topbar {
+  height: var(--topbar-h);
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 max(1rem, calc((100vw - var(--content))/2));
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(14px);
+}
+.brand { display: inline-flex; align-items: center; gap: .8rem; min-width: 0; }
+.brand__mark {
+  width: 42px; height: 42px; display: grid; place-items: center;
+  border-radius: 13px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #06151d; font-size: 1.3rem;
+}
+.brand strong { display: block; letter-spacing: .03em; }
+.brand small { display: block; color: var(--muted); margin-top: .1rem; }
+.topbar__actions { display: flex; align-items: center; gap: .55rem; }
+.app-shell { width: min(var(--content), calc(100% - 2rem)); margin: 0 auto; padding: 1.4rem 0 3rem; }
+.page-stack { display: grid; gap: 1.25rem; }
+.hero-grid { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(280px,.6fr); gap: 1rem; }
+.cards-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1rem; }
+.lab-shell { display: grid; grid-template-columns: 300px minmax(0,1fr) 300px; gap: 1rem; min-height: calc(100vh - var(--topbar-h) - 5.2rem); }
+.lab-stage { min-height: 540px; }

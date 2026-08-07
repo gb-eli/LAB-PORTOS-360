@@ -1,0 +1,21 @@
+@media (max-width: 1040px) {
+  .cards-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .lab-shell { grid-template-columns: 260px minmax(0,1fr); }
+  .lab-shell > :last-child { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  :root { --topbar-h: 64px; }
+  .brand small { display:none; }
+  .app-shell { width:min(100% - 1rem,var(--content)); padding-top:.75rem; }
+  .hero-grid, .cards-grid, .lab-shell { grid-template-columns: 1fr; }
+  .lab-shell { min-height:auto; }
+  .lab-stage { order:-1; min-height:420px; }
+  .stage-canvas { min-height:420px; }
+  .hero-card { padding:1.15rem; }
+  h1 { max-width:14ch; }
+  .topbar { padding:0 .75rem; }
+  .chip-button { padding:.55rem .65rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior:auto !important; animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+}
