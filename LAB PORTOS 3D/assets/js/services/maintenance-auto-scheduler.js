@@ -1,0 +1,12 @@
+const KEY='terminal:maintenance-auto-scheduler:v024';
+const clone=v=>JSON.parse(JSON.stringify(v));
+const fresh=()=>({version:1,updatedAt:new Date().toISOString(),last:null,runs:0});
+export class MaintenanceAutoScheduler{
+ constructor({storage,eventBus,maintenanceBacklog,maintenancePriority,maintenanceReadiness,maintenanceCriticalPath,maintenanceCapacity,maintenanceWindowAdvisor,liveState}={}){Object.assign(this,{storage,eventBus,maintenanceBacklog,maintenancePriority,maintenanceReadiness,maintenanceCriticalPath,maintenanceCapacity,maintenanceWindowAdvisor,liveState});if(storage.get(KEY,null)===null)storage.set(KEY,fresh());this.syncLive('init');}
+ get(){return clone(this.storage.get(KEY,fresh()));}
+ save(s,source='maintenance-auto-scheduler'){s.updatedAt=new Date().toISOString();this.storage.set(KEY,s);const summary=this.summary(s);this.liveState?.updateMaintenanceAutoScheduler?.(summary,source);this.eventBus?.emit('maintenance-auto-scheduler:changed',{source,state:clone(s),summary});return clone(s);}
+ generate({hours=24}={}){const pri=Object.fromEntries(this.maintenancePriority.summary().rows.map(r=>[r.orderId,r])),dur=Object.fromEntries(this.maintenanceCriticalPath.summary().rows.map(r=>[r.orderId,r.durationHours])),rows=this.maintenanceBacklog.summary().rows.filter(r=>r.status==='open').sort((a,b)=>(pri[b.orderId]?.score||0)-(pri[a.orderId]?.score||0));let cursor=0;const plan=[];for(const r of rows){const ready=this.maintenanceReadiness.evaluate(r.orderId);const d=dur[r.orderId]||3;if(!ready.ready){plan.push({...r,durationHours:d,startHour:null,endHour:null,status:'bloqueada',reason:ready.reason});continue;}if(cursor+d>hours){plan.push({...r,durationHours:d,startHour:null,endHour:null,status:'fora-horizonte',reason:'Capacidade do horizonte esgotada.'});continue;}plan.push({...r,durationHours:d,startHour:cursor,endHour:cursor+d,status:'planejada',reason:'Ordenada por prioridade e prontidão.'});cursor+=d;}
+  const s=this.get();s.runs+=1;s.last={generatedAt:new Date().toISOString(),hours,usedHours:cursor,plan};this.save(s,'generate');return clone(s.last);}
+ summary(state=this.get()){const p=state.last?.plan||[];return{runs:state.runs,last:state.last,planned:p.filter(x=>x.status==='planejada').length,blocked:p.filter(x=>x.status==='bloqueada').length,outside:p.filter(x=>x.status==='fora-horizonte').length,usedHours:state.last?.usedHours||0,hours:state.last?.hours||0};}
+ syncLive(source='maintenance-auto-scheduler'){this.liveState?.updateMaintenanceAutoScheduler?.(this.summary(),source);}
+}

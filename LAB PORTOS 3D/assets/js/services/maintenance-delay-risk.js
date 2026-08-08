@@ -1,0 +1,10 @@
+const KEY='terminal:maintenance-delay-risk:v023';
+const clone=v=>JSON.parse(JSON.stringify(v));
+const fresh=()=>({version:1,updatedAt:new Date().toISOString(),last:null});
+export class MaintenanceDelayRisk{
+ constructor({storage,eventBus,maintenanceSLA,maintenancePriority,maintenanceReadiness,maintenanceDependencies,assetCriticality,liveState}={}){Object.assign(this,{storage,eventBus,maintenanceSLA,maintenancePriority,maintenanceReadiness,maintenanceDependencies,assetCriticality,liveState});if(storage.get(KEY,null)===null)storage.set(KEY,fresh());this.syncLive('init');}
+ get(){return clone(this.storage.get(KEY,fresh()));}
+ save(s,source='maintenance-delay-risk'){s.updatedAt=new Date().toISOString();this.storage.set(KEY,s);const summary=this.summary(s);this.liveState?.updateMaintenanceDelayRisk?.(summary,source);this.eventBus?.emit('maintenance-delay-risk:changed',{source,state:clone(s),summary});return clone(s);}
+ summary(){const sla=this.maintenanceSLA.summary(),pri=Object.fromEntries(this.maintenancePriority.summary().rows.map(r=>[r.orderId,r])),crit=Object.fromEntries(this.assetCriticality.summary().rows.map(r=>[r.id,r]));const rows=sla.rows.map(r=>{const readiness=this.maintenanceReadiness.evaluate(r.orderId),dep=this.maintenanceDependencies.evaluate(r.orderId),p=pri[r.orderId]?.score||0,c=crit[r.equipmentId]?.score||0;let score=p*.45+c*.2+Math.min(35,Math.max(0,r.ratio)*25)+(readiness.ready?0:8)+(dep.ready?0:12);score=Math.min(100,Math.round(score));return{...r,score,risk:score>=75?'alto':score>=50?'atenção':'baixo',blockedByDependency:!dep.ready,ready:readiness.ready};}).sort((a,b)=>b.score-a.score);const out={rows,high:rows.filter(r=>r.risk==='alto').length,medium:rows.filter(r=>r.risk==='atenção').length,top:rows[0]||null};const s=this.get();s.last=out.top;this.storage.set(KEY,s);this.liveState?.updateMaintenanceDelayRisk?.(out,'summary');return out;}
+ syncLive(source='maintenance-delay-risk'){this.liveState?.updateMaintenanceDelayRisk?.(this.summary(),source);}
+}

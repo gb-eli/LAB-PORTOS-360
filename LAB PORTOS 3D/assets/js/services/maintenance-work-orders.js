@@ -1,0 +1,21 @@
+import { EQUIPMENT } from './equipment-maintenance.js';
+const KEY='terminal:work-orders:v019';
+const clone=v=>JSON.parse(JSON.stringify(v));
+const initialMeters=()=>Object.fromEntries(EQUIPMENT.map((e,i)=>[e.id,1200+i*137]));
+const fresh=()=>({version:1,updatedAt:new Date().toISOString(),meters:initialMeters(),orders:[],next:1,preventiveInterval:250});
+export class MaintenanceWorkOrders{
+ constructor({storage,eventBus,equipmentMaintenance,liveState}={}){Object.assign(this,{storage,eventBus,equipmentMaintenance,liveState});this.startGuard=null;if(storage.get(KEY,null)===null)storage.set(KEY,fresh());this.ensurePreventives();this.syncLive('init');}
+ setStartGuard(fn){this.startGuard=typeof fn==='function'?fn:null;return this;}
+ get(){return clone(this.storage.get(KEY,fresh()));}
+ save(s,source='work-orders'){s.updatedAt=new Date().toISOString();this.storage.set(KEY,s);const summary=this.summary(s);this.liveState?.updateWorkOrders?.(summary,source);this.eventBus?.emit('work-orders:changed',{source,state:clone(s),summary});return clone(s);}
+ reset(){this.storage.set(KEY,fresh());this.ensurePreventives();return this.save(this.get(),'reset');}
+ meter(id){return Number(this.get().meters[id])||0;}
+ nextDue(id,state=this.get()){const h=Number(state.meters[id])||0,i=state.preventiveInterval||250;return Math.ceil(h/i)*i;}
+ addHours(id,hours=1){if(!EQUIPMENT.some(e=>e.id===id))return null;const s=this.get();s.meters[id]=(Number(s.meters[id])||0)+Math.max(0,Number(hours)||0);this.save(s,'hours');this.ensurePreventives();return this.get();}
+ create({equipmentId,type='preventive',priority='normal',description='Inspeção programada'}={}){if(!EQUIPMENT.some(e=>e.id===equipmentId))return{ok:false,reason:'Equipamento inválido.'};const s=this.get();const open=s.orders.find(o=>o.equipmentId===equipmentId&&o.status!=='closed'&&o.type===type);if(open)return{ok:false,reason:`Já existe ${open.id} aberta para este ativo.`};const id=`OT-${String(s.next++).padStart(4,'0')}`;s.orders.unshift({id,equipmentId,type,priority,description,status:'open',createdAt:new Date().toISOString(),startedAt:null,closedAt:null,meter:Number(s.meters[equipmentId])||0});this.save(s,'create');return{ok:true,id};}
+ start(id,{skipGuard=false}={}){const s=this.get(),o=s.orders.find(x=>x.id===id);if(!o||o.status==='closed')return{ok:false,reason:'OT inválida.'};if(!skipGuard&&this.startGuard){const gate=this.startGuard(id);if(!gate?.ok)return{ok:false,reason:gate?.reason||'OT bloqueada pela prontidão de manutenção.'};}o.status='in-progress';o.startedAt=o.startedAt||new Date().toISOString();const clock=this.equipmentMaintenance.get().clock;this.equipmentMaintenance.setStatus(o.equipmentId,'maintenance',{reason:`${o.id} em execução`,plannedReturn:clock+120});this.save(s,'start');return{ok:true};}
+ close(id){const s=this.get(),o=s.orders.find(x=>x.id===id);if(!o)return{ok:false,reason:'OT inválida.'};o.status='closed';o.closedAt=new Date().toISOString();this.equipmentMaintenance.setStatus(o.equipmentId,'available');this.save(s,'close');return{ok:true};}
+ ensurePreventives(){const s=this.get();let changed=false;for(const e of EQUIPMENT){const h=Number(s.meters[e.id])||0,due=this.nextDue(e.id,s);const lastBoundary=due-(s.preventiveInterval||250);if(h>=lastBoundary&&due-h<=25&&!s.orders.some(o=>o.equipmentId===e.id&&o.status!=='closed'&&o.type==='preventive')){const id=`OT-${String(s.next++).padStart(4,'0')}`;s.orders.unshift({id,equipmentId:e.id,type:'preventive',priority:due-h<=5?'alta':'normal',description:`Preventiva por horímetro — referência ${due} h`,status:'open',createdAt:new Date().toISOString(),startedAt:null,closedAt:null,meter:h});changed=true;}}if(changed)this.save(s,'auto-preventive');}
+ summary(state=this.get()){const open=state.orders.filter(o=>o.status!=='closed'),inProgress=open.filter(o=>o.status==='in-progress'),due=EQUIPMENT.map(e=>({equipment:e,hours:Number(state.meters[e.id])||0,nextDue:this.nextDue(e.id,state),remaining:this.nextDue(e.id,state)-(Number(state.meters[e.id])||0)})).sort((a,b)=>a.remaining-b.remaining);return{open:open.length,inProgress:inProgress.length,closed:state.orders.filter(o=>o.status==='closed').length,high:open.filter(o=>o.priority==='alta').length,orders:state.orders,due};}
+ syncLive(source='work-orders'){this.liveState?.updateWorkOrders?.(this.summary(),source);}
+}

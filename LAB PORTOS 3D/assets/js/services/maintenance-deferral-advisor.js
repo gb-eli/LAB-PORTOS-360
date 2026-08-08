@@ -1,0 +1,13 @@
+const KEY='terminal:maintenance-deferral:v023';
+const clone=v=>JSON.parse(JSON.stringify(v));
+const fresh=()=>({version:1,updatedAt:new Date().toISOString(),runs:[],last:null});
+export class MaintenanceDeferralAdvisor{
+ constructor({storage,eventBus,plannedMaintenance,assetCriticality,maintenanceDelayRisk,maintenanceProgramImpact,maintenanceWindowAdvisor,liveState}={}){Object.assign(this,{storage,eventBus,plannedMaintenance,assetCriticality,maintenanceDelayRisk,maintenanceProgramImpact,maintenanceWindowAdvisor,liveState});if(storage.get(KEY,null)===null)storage.set(KEY,fresh());this.syncLive('init');}
+ get(){return clone(this.storage.get(KEY,fresh()));}
+ save(s,source='maintenance-deferral'){s.updatedAt=new Date().toISOString();this.storage.set(KEY,s);const summary=this.summary(s);this.liveState?.updateMaintenanceDeferral?.(summary,source);this.eventBus?.emit('maintenance-deferral:changed',{source,state:clone(s),summary});return clone(s);}
+ windows(){return this.plannedMaintenance.summary().windows.filter(w=>['scheduled','active'].includes(w.status));}
+ score(w){const crit=this.assetCriticality.summary().rows.find(r=>r.id===w.equipmentId),riskRows=this.maintenanceDelayRisk.summary().rows.filter(r=>r.equipmentId===w.equipmentId),maintenanceUrgency=Math.max(crit?.score||0,...riskRows.map(r=>r.score),0),impact=this.maintenanceProgramImpact.assessWindow(w),keepScore=Math.round(maintenanceUrgency-impact.score*.35);return{window:w,criticality:crit?.criticalClass||'C',maintenanceUrgency,impact,keepScore};}
+ compare(idA,idB){const a=this.windows().find(w=>w.id===idA),b=this.windows().find(w=>w.id===idB);if(!a||!b)return{ok:false,reason:'Selecione duas janelas válidas.'};const overlap=Math.max(0,Math.min(a.endMinute,b.endMinute)-Math.max(a.startMinute,b.startMinute));if(!overlap)return{ok:false,reason:'As janelas selecionadas não se sobrepõem; escolha um conflito temporal real.'};const sa=this.score(a),sb=this.score(b),defer=sa.keepScore<=sb.keepScore?sa:sb,keep=defer===sa?sb:sa;const alt=this.maintenanceWindowAdvisor.recommend(defer.window.equipmentId,defer.window.duration,{horizonHours:168,stepMinutes:60});const result={ok:true,overlap,a:sa,b:sb,keep,defer,alternative:alt.best||null,reason:`Manter ${keep.window.id}: maior valor de continuidade da manutenção. Adiar ${defer.window.id} e buscar janela alternativa de menor impacto.`};const s=this.get();s.runs.unshift({...result,at:new Date().toISOString()});s.runs=s.runs.slice(0,30);s.last=s.runs[0];this.save(s,'compare');return result;}
+ summary(state=this.get()){return{runs:state.runs.length,last:state.last,deferred:state.runs.filter(r=>r.defer).length};}
+ syncLive(source='maintenance-deferral'){this.liveState?.updateMaintenanceDeferral?.(this.summary(),source);}
+}

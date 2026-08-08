@@ -1,0 +1,11 @@
+const KEY='terminal:maintenance-rescheduler:v025';
+const clone=v=>JSON.parse(JSON.stringify(v));
+const fresh=()=>({version:1,updatedAt:new Date().toISOString(),runs:0,last:null});
+export class MaintenanceRescheduler{
+ constructor({storage,eventBus,maintenanceParallelExecution,maintenanceEmergency,liveState}={}){Object.assign(this,{storage,eventBus,maintenanceParallelExecution,maintenanceEmergency,liveState});if(storage.get(KEY,null)===null)storage.set(KEY,fresh());this.syncLive('init');}
+ get(){return clone(this.storage.get(KEY,fresh()));}
+ save(s,source='maintenance-rescheduler'){s.updatedAt=new Date().toISOString();this.storage.set(KEY,s);const summary=this.summary(s);this.liveState?.updateMaintenanceReschedule?.(summary,source);this.eventBus?.emit('maintenance-rescheduler:changed',{source,state:clone(s),summary});return clone(s);}
+ replan({hours=8,startMinute=0}={}){const before=this.maintenanceParallelExecution.summary().last||this.maintenanceParallelExecution.generate({hours,startMinute}),emg=this.maintenanceEmergency.summary(),priorityIds=emg.active&&emg.orderId?[emg.orderId]:[],after=this.maintenanceParallelExecution.generate({hours,startMinute,priorityOrderIds:priorityIds});const oldMap=Object.fromEntries((before.plan||[]).filter(x=>x.status==='planejada').map(x=>[x.orderId,x.startMinute])),newMap=Object.fromEntries((after.plan||[]).filter(x=>x.status==='planejada').map(x=>[x.orderId,x.startMinute]));const moved=Object.keys(newMap).filter(id=>oldMap[id]!==undefined&&oldMap[id]!==newMap[id]).map(id=>({orderId:id,before:oldMap[id],after:newMap[id],delta:newMap[id]-oldMap[id]})),dropped=Object.keys(oldMap).filter(id=>newMap[id]===undefined),added=Object.keys(newMap).filter(id=>oldMap[id]===undefined);const last={generatedAt:new Date().toISOString(),hours,startMinute,emergencyOrderId:emg.orderId,before,after,moved,dropped,added};const s=this.get();s.runs+=1;s.last=last;this.save(s,'replan');return clone(last);}
+ summary(state=this.get()){return{runs:state.runs,last:state.last,moved:state.last?.moved?.length||0,dropped:state.last?.dropped?.length||0,added:state.last?.added?.length||0,remaining:state.last?.after?.plan?.filter(x=>x.status==='planejada').length||0};}
+ syncLive(source='maintenance-rescheduler'){this.liveState?.updateMaintenanceReschedule?.(this.summary(),source);}
+}

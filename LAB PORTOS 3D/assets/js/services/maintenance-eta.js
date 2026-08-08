@@ -1,0 +1,10 @@
+const KEY='terminal:maintenance-eta:v027';
+const clone=v=>JSON.parse(JSON.stringify(v));
+const fresh=()=>({version:1,updatedAt:new Date().toISOString(),runs:0,last:null});
+export class MaintenanceETA{
+ constructor({storage,eventBus,maintenanceExecutionProgress,technicianProductivity,fatigueModel,liveState}={}){Object.assign(this,{storage,eventBus,maintenanceExecutionProgress,technicianProductivity,fatigueModel,liveState});if(storage.get(KEY,null)===null)storage.set(KEY,fresh());this.syncLive('init');}
+ get(){return clone(this.storage.get(KEY,fresh()));}
+ calculate(){const ex=this.maintenanceExecutionProgress?.summary?.(),clock=ex?.clockMinute||0,rows=(ex?.rows||[]).filter(e=>e.status!=='completed').map(e=>{const remaining=Math.max(0,(e.plannedMinutes||0)-(e.productiveMinutes||0)),prod=this.technicianProductivity?.factorForOrder?.(e.orderId)||1,fatigue=this.fatigueModel?.factorForTechnicians?.(e.technicians||[])||1,rate=Math.max(.45,Math.min(1.35,prod*fatigue)),eta=Math.ceil(remaining/rate);return{orderId:e.orderId,equipmentId:e.equipmentId,status:e.status,progressPct:e.progressPct||0,remainingProductiveMinutes:remaining,productivityFactor:prod,fatigueFactor:fatigue,effectiveRate:rate,etaMinutes:eta,estimatedFinishMinute:clock+eta};}).sort((a,b)=>a.estimatedFinishMinute-b.estimatedFinishMinute);const s=this.get();s.runs+=1;s.last={clockMinute:clock,rows};this.storage.set(KEY,s);const summary=this.summary(s);this.liveState?.updateMaintenanceETA?.(summary,'calculate');this.eventBus?.emit('maintenance-eta:changed',{summary});return summary;}
+ summary(state=this.get()){const last=state.last||{clockMinute:this.maintenanceExecutionProgress?.summary?.().clockMinute||0,rows:[]},rows=last.rows||[];return{runs:state.runs,clockMinute:last.clockMinute,rows,lateRisk:rows.filter(r=>r.effectiveRate<.8).length,maxEta:rows.length?Math.max(...rows.map(r=>r.etaMinutes)):0,next:rows[0]||null};}
+ syncLive(source='maintenance-eta'){this.liveState?.updateMaintenanceETA?.(this.summary(),source);}
+}
