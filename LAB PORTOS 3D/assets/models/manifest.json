@@ -1,0 +1,197 @@
+{
+  "version": "0.11.0",
+  "assets": {
+    "container-20dv": {
+      "type": "gltf",
+      "label": "Contêiner 20' Dry",
+      "lods": {
+        "lod0": "./assets/models/container-20dv/container-20dv-lod0.glb",
+        "lod1": "./assets/models/container-20dv/container-20dv-lod1.glb",
+        "lod2": "./assets/models/container-20dv/container-20dv-lod2.glb"
+      },
+      "qualityMap": {
+        "Q1": "lod2",
+        "Q2": "lod1",
+        "Q3": "lod0",
+        "Q4": "lod0"
+      },
+      "fallback": "procedural"
+    },
+    "container-40dv": {
+      "type": "gltf",
+      "label": "Contêiner 40' Dry",
+      "lods": {
+        "lod0": "./assets/models/container-40dv/container-40dv-lod0.glb",
+        "lod1": "./assets/models/container-40dv/container-40dv-lod1.glb",
+        "lod2": "./assets/models/container-40dv/container-40dv-lod2.glb"
+      },
+      "qualityMap": {
+        "Q1": "lod2",
+        "Q2": "lod1",
+        "Q3": "lod0",
+        "Q4": "lod0"
+      },
+      "fallback": "procedural"
+    },
+    "container-40hc": {
+      "type": "gltf",
+      "label": "Contêiner 40' High Cube",
+      "lods": {
+        "lod0": "./assets/models/container-40hc/container-40hc-lod0.glb",
+        "lod1": "./assets/models/container-40hc/container-40hc-lod1.glb",
+        "lod2": "./assets/models/container-40hc/container-40hc-lod2.glb"
+      },
+      "qualityMap": {
+        "Q1": "lod2",
+        "Q2": "lod1",
+        "Q3": "lod0",
+        "Q4": "lod0"
+      },
+      "fallback": "procedural"
+    },
+    "reefer-40hc": {
+      "type": "gltf",
+      "label": "Reefer 40' High Cube",
+      "lods": {
+        "lod0": "./assets/models/reefer-40hc/reefer-40hc-lod0.glb",
+        "lod1": "./assets/models/reefer-40hc/reefer-40hc-lod1.glb",
+        "lod2": "./assets/models/reefer-40hc/reefer-40hc-lod2.glb"
+      },
+      "qualityMap": {
+        "Q1": "lod2",
+        "Q2": "lod1",
+        "Q3": "lod0",
+        "Q4": "lod0"
+      },
+      "fallback": "procedural"
+    },
+    "open-top-40": {
+      "type": "gltf",
+      "label": "Open Top 40'",
+      "lods": {
+        "lod0": "./assets/models/open-top-40/open-top-40-lod0.glb",
+        "lod1": "./assets/models/open-top-40/open-top-40-lod1.glb",
+        "lod2": "./assets/models/open-top-40/open-top-40-lod2.glb"
+      },
+      "qualityMap": {
+        "Q1": "lod2",
+        "Q2": "lod1",
+        "Q3": "lod0",
+        "Q4": "lod0"
+      },
+      "fallback": "procedural"
+    },
+    "flat-rack-40": {
+      "type": "gltf",
+      "label": "Flat Rack 40'",
+      "lods": {
+        "lod0": "./assets/models/flat-rack-40/flat-rack-40-lod0.glb",
+        "lod1": "./assets/models/flat-rack-40/flat-rack-40-lod1.glb",
+        "lod2": "./assets/models/flat-rack-40/flat-rack-40-lod2.glb"
+      },
+      "qualityMap": {
+        "Q1": "lod2",
+        "Q2": "lod1",
+        "Q3": "lod0",
+        "Q4": "lod0"
+      },
+      "fallback": "procedural"
+    },
+    "truck": {
+      "type": "gltf",
+      "label": "Caminhão portuário",
+      "lods": {
+        "lod0": "./assets/models/truck/truck-lod0.glb",
+        "lod1": "./assets/models/truck/truck-lod1.glb",
+        "lod2": "./assets/models/truck/truck-lod2.glb"
+      },
+      "qualityMap": {
+        "Q1": "lod2",
+        "Q2": "lod1",
+        "Q3": "lod0",
+        "Q4": "lod0"
+      },
+      "fallback": "procedural"
+    },
+    "reach-stacker": {
+      "type": "gltf",
+      "label": "Reach Stacker",
+      "lods": {
+        "lod0": "./assets/models/reach-stacker/reach-stacker-lod0.glb",
+        "lod1": "./assets/models/reach-stacker/reach-stacker-lod1.glb",
+        "lod2": "./assets/models/reach-stacker/reach-stacker-lod2.glb"
+      },
+      "qualityMap": {
+        "Q1": "lod2",
+        "Q2": "lod1",
+        "Q3": "lod0",
+        "Q4": "lod0"
+      },
+      "fallback": "procedural"
+    },
+    "rtg": {
+      "type": "gltf",
+      "label": "RTG",
+      "lods": {
+        "lod0": "./assets/models/rtg/rtg-lod0.glb",
+        "lod1": "./assets/models/rtg/rtg-lod1.glb",
+        "lod2": "./assets/models/rtg/rtg-lod2.glb"
+      },
+      "qualityMap": {
+        "Q1": "lod2",
+        "Q2": "lod1",
+        "Q3": "lod0",
+        "Q4": "lod0"
+      },
+      "fallback": "procedural"
+    },
+    "portainer": {
+      "type": "gltf",
+      "label": "Portêiner / STS",
+      "lods": {
+        "lod0": "./assets/models/portainer/portainer-lod0.glb",
+        "lod1": "./assets/models/portainer/portainer-lod1.glb",
+        "lod2": "./assets/models/portainer/portainer-lod2.glb"
+      },
+      "qualityMap": {
+        "Q1": "lod2",
+        "Q2": "lod1",
+        "Q3": "lod0",
+        "Q4": "lod0"
+      },
+      "fallback": "procedural"
+    },
+    "locomotive": {
+      "type": "gltf",
+      "label": "Locomotiva de manobra",
+      "lods": {
+        "lod0": "./assets/models/locomotive/locomotive-lod0.glb",
+        "lod1": "./assets/models/locomotive/locomotive-lod1.glb",
+        "lod2": "./assets/models/locomotive/locomotive-lod2.glb"
+      },
+      "qualityMap": {
+        "Q1": "lod2",
+        "Q2": "lod1",
+        "Q3": "lod0",
+        "Q4": "lod0"
+      },
+      "fallback": "procedural"
+    },
+    "chassis": {
+      "type": "gltf",
+      "label": "Chassi porta-contêiner",
+      "lods": {
+        "lod0": "./assets/models/chassis/chassis-lod0.glb",
+        "lod1": "./assets/models/chassis/chassis-lod1.glb",
+        "lod2": "./assets/models/chassis/chassis-lod2.glb"
+      },
+      "qualityMap": {
+        "Q1": "lod2",
+        "Q2": "lod1",
+        "Q3": "lod0",
+        "Q4": "lod0"
+      },
+      "fallback": "procedural"
+    }
+  }
+}
