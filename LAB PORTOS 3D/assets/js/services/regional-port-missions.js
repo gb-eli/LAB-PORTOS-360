@@ -1,0 +1,5 @@
+export const REGIONAL_MISSIONS=[
+ {id:'paranagua',name:'Paranaguá',region:'Paraná',focus:'Contêiner + Reefer + integração rodoviária/ferroviária',brief:'Organize uma exportação Reefer com Gate, VGM, pátio e embarque, mantendo a unidade na cadeia correta.',choices:['Priorizar zona Reefer e monitoramento','Enviar para bloco comum sem energia','Ignorar VGM'],answer:0},
+ {id:'santos',name:'Santos',region:'São Paulo',focus:'Grande complexo portuário + múltiplos terminais + ferrovia',brief:'Uma unidade de importação precisa sair do cais, passar pelo pátio e seguir por conexão terrestre sem criar rehandle desnecessário.',choices:['Pré-estivar conforme sequência de retirada','Empilhar sem considerar retirada','Enviar diretamente ao navio'],answer:0},
+ {id:'itapoa',name:'Itapoá',region:'Santa Catarina',focus:'Gate automatizado/OCR + Reefer + terminal de contêineres',brief:'O OCR identificou divergência entre lacre lido e documento. Defina a resposta operacional didática.',choices:['Reter e reconciliar a divergência','Liberar sem conferência','Alterar o documento sem registro'],answer:0}
+];

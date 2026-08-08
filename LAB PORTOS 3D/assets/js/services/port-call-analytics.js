@@ -1,0 +1,13 @@
+const avg=a=>a.length?a.reduce((n,v)=>n+v,0)/a.length:0;
+const clone=v=>typeof structuredClone==='function'?structuredClone(v):JSON.parse(JSON.stringify(v));
+const round=n=>Number((Number(n)||0).toFixed(1));
+export class PortCallAnalytics{
+ constructor({eventBus,portCallHistory,portCallEvents}={}){Object.assign(this,{eventBus,portCallHistory,portCallEvents});}
+ records(){return this.portCallHistory?.list?.()||[];}
+ phases(){const rows=this.records(),keys=['waiting','arrivalManeuver','cargo','berthAdmin','closing','outbound'];const labels={waiting:'Espera por berço',arrivalManeuver:'Chegada/manobra',cargo:'Operação de carga',berthAdmin:'Tempo de berço não-carga',closing:'Fechamento',outbound:'Saída/outbound'};return keys.map(key=>({key,label:labels[key],avgMin:round(avg(rows.map(r=>Number(r.phaseTimes?.[key]||0)))),maxMin:rows.length?Math.max(...rows.map(r=>Number(r.phaseTimes?.[key]||0))):0}));}
+ turnaround(){const rows=this.records();return rows.map(r=>({id:r.id,vessel:r.vessel,source:r.source,turnaroundMin:Number(r.turnaroundMin||0),berthStayMin:Number(r.berthStayMin||0),waitMin:Number(r.berthWaitMin||0),delays:Number(r.weatherDelayMin||0)+Number(r.operationalDelayMin||0)})).sort((a,b)=>a.turnaroundMin-b.turnaroundMin);}
+ berthWait(){return this.records().map(r=>({id:r.id,vessel:r.vessel,berth:r.berth,waitMin:Number(r.berthWaitMin||0),berthVarianceMin:Number(r.berthVarianceMin||0),source:r.source})).sort((a,b)=>b.waitMin-a.waitMin);}
+ productivity(){return this.records().map(r=>({id:r.id,vessel:r.vessel,rate:Number(r.quayRate||0),moves:Number(r.moves||0),planPct:Number(r.loadPlanPct||0),stay:Number(r.berthStayMin||0)})).sort((a,b)=>b.rate-a.rate);}
+ compare(ids=[]){const rows=this.records(),sel=ids.length?rows.filter(r=>ids.includes(r.id)):rows.slice(0,2);return clone(sel.map(r=>({id:r.id,vessel:r.vessel,berth:r.berth,source:r.source,turnaroundMin:r.turnaroundMin,waitMin:r.berthWaitMin,berthStayMin:r.berthStayMin,quayRate:r.quayRate,moves:r.moves,loadPlanPct:r.loadPlanPct,weatherDelayMin:r.weatherDelayMin||0,operationalDelayMin:r.operationalDelayMin||0})) );}
+ executive(){const h=this.portCallHistory?.summary?.()||{},e=this.portCallEvents?.summary?.()||{},turn=this.turnaround(),prod=this.productivity(),wait=this.berthWait(),phases=this.phases();return{calls:h.count,avgTurnaround:round(h.avgTurnaround),avgWait:round(h.avgWait),avgStay:round(h.avgStay),avgRate:round(h.avgRate),avgPlan:round(h.avgPlan),bestTurnaround:turn[0]||null,bestRate:prod[0]||null,worstWait:wait[0]||null,totalEventDelay:e.totalDelayMin||0,weatherDelay:e.weatherDelayMin||0,operationalDelay:e.operationalDelayMin||0,dominantPhase:[...phases].sort((a,b)=>b.avgMin-a.avgMin)[0]||null};}
+}
