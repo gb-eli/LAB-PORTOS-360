@@ -1,0 +1,15 @@
+function mat(THREE,color,{roughness=.68,metalness=.18,transparent=false,opacity=1,emissive=0x000000,emissiveIntensity=0}={}){
+  return new THREE.MeshStandardMaterial({color,roughness,metalness,transparent,opacity,emissive,emissiveIntensity,side:THREE.DoubleSide});
+}
+function sideDent(THREE){
+  const geo=new THREE.PlaneGeometry(2.35,1.25,16,10);const p=geo.attributes.position;
+  for(let i=0;i<p.count;i++){const x=p.getX(i)/1.175,y=p.getY(i)/.625,r=Math.sqrt(x*x+y*y);if(r<1)p.setZ(i,-.34*(1-r*r));}
+  geo.computeVertexNormals();const mesh=new THREE.Mesh(geo,mat(THREE,0x1d5660,{roughness:.78,metalness:.24}));mesh.position.set(-2.9,.35,1.24);return mesh;
+}
+function crack(THREE){const g=new THREE.Group(),m=new THREE.LineBasicMaterial({color:0xff654f});[[0,0,0,.42,-.28,0],[.42,-.28,0,.68,-.1,0],[.42,-.28,0,.56,-.62,0]].forEach(v=>{const geo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(v[0],v[1],v[2]),new THREE.Vector3(v[3],v[4],v[5])]);g.add(new THREE.Line(geo,m));});g.position.set(5.82,1.5,1.27);g.rotation.y=Math.PI/2;return g;}
+function roofHole(THREE){const g=new THREE.Group();const ring=new THREE.Mesh(new THREE.TorusGeometry(.42,.08,10,26),mat(THREE,0x873a2e,{roughness:.84}));ring.rotation.x=Math.PI/2;const dark=new THREE.Mesh(new THREE.CircleGeometry(.34,28),mat(THREE,0x05090b,{roughness:1}));dark.rotation.x=-Math.PI/2;dark.position.y=.012;g.add(ring,dark);g.position.set(.4,1.49,.1);return g;}
+function gasket(THREE){const g=new THREE.Group();const seal=new THREE.Mesh(new THREE.BoxGeometry(.08,1.7,.11),mat(THREE,0x121719,{roughness:.92}));seal.rotation.z=.14;g.add(seal);g.position.set(6.1,.18,-.65);return g;}
+function buckle(THREE){const geo=new THREE.BoxGeometry(2.4,.16,.15,14,1,1);const p=geo.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i)/1.2;p.setY(i,p.getY(i)+.24*Math.cos(x*Math.PI/2));}geo.computeVertexNormals();const mesh=new THREE.Mesh(geo,mat(THREE,0xd1a23a,{roughness:.55,metalness:.46}));mesh.position.set(-1.1,-1.22,-1.24);return mesh;}
+function corrosion(THREE){const g=new THREE.Group();const spots=[[-.35,.1,.25],[.18,.18,.18],[.4,-.18,.14],[-.05,-.25,.11]];spots.forEach(([x,y,r])=>{const s=new THREE.Mesh(new THREE.CircleGeometry(r,16),mat(THREE,0x8b3f29,{roughness:.98,transparent:true,opacity:.86}));s.position.set(x,y,0);g.add(s)});g.position.set(2.3,-.35,1.255);return g;}
+export function createDamageVisual(THREE,id){const makers={"side-dent":sideDent,"corner-crack":crack,"roof-hole":roofHole,"door-gasket":gasket,"rail-buckle":buckle,"surface-corrosion":corrosion};const obj=makers[id]?.(THREE)||null;if(obj){obj.name=`damage-${id}`;obj.userData.damageId=id;}return obj;}
+export function createDamageVisuals(THREE,ids=[]){const g=new THREE.Group();g.name='damage-visuals';const map=new Map();ids.forEach(id=>{const o=createDamageVisual(THREE,id);if(o){g.add(o);map.set(id,o)}});g.userData.map=map;g.userData.setActive=id=>map.forEach((o,key)=>{o.visible=key===id;o.traverse?.(n=>{if(n.material&&'emissiveIntensity' in n.material)n.material.emissiveIntensity=key===id?.22:0;});});return g;}
