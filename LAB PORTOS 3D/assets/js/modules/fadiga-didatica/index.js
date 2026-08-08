@@ -1,0 +1,8 @@
+let clean=[];
+export async function mount({root,fatigueModel,eventBus,toast}){
+ root.innerHTML=`<section class="lab-wide"><header class="lab-heading"><div><span class="eyebrow">Manutenção • v0.27</span><h1>Fadiga Didática — Carga de Trabalho e Risco</h1><p>Relacione minutos produtivos, horas extras e transferências a um índice didático de fadiga, sem finalidade médica ou ocupacional real.</p></div><a class="button button--ghost" href="#/">← Central</a></header><section class="panel"><div class="panel__title"><h2>Fadiga Didática</h2><button id="act" class="button button--primary">Atualizar / executar</button></div><div id="metrics" class="metric-grid"></div><div id="body" class="v020-table"></div></section></section>`;
+
+ const render=()=>{const s=fatigueModel.capture();root.querySelector('#metrics').innerHTML=`<div><small>Alto</small><strong>${s.high}</strong></div><div><small>Atenção</small><strong>${s.attention}</strong></div><div><small>Maior score</small><strong>${s.maxScore.toFixed(0)}</strong></div>`;root.querySelector('#body').innerHTML=s.rows.length?s.rows.map(r=>`<article class="${r.level==='alto'?'v023-warning':''}"><strong>${r.techId}</strong><span>${r.productiveMinutes} min produtivos</span><span>${r.overtimeMinutes} min HE</span><b>${r.score.toFixed(0)} • ${r.level}</b><small style="grid-column:1/-1">fator didático de ritmo ${r.factor.toFixed(2)}</small></article>`).join(''):'<div class="empty-inline">Ainda não há carga de trabalho registrada.</div>';};root.querySelector('#act').onclick=render;clean.push(eventBus.on('maintenance-execution:changed',render),eventBus.on('overtime:changed',render));render();
+
+}
+export async function unmount(){clean.forEach(f=>f?.());clean=[];}
