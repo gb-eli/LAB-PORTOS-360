@@ -1,0 +1,6 @@
+{
+  "base": "0.11.0",
+  "target": "0.12.0",
+  "mode": "overlay",
+  "preserve_local_storage": true
+}
