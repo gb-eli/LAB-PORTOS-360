@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07131d" />
+  <meta name="description" content="LAB PORTOS 360 — Laboratório Virtual para formação técnica em Portos." />
+  <title>LAB PORTOS 360</title>
+  <link rel="stylesheet" href="./assets/css/main.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.184.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.184.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#app">Pular para o conteúdo</a>
+
+  <header class="topbar">
+    <a href="#/" class="brand" aria-label="LAB PORTOS 360 — início">
+      <span class="brand__mark" aria-hidden="true">⚓</span>
+      <span>
+        <strong>LAB PORTOS 360</strong>
+        <small>Laboratório Virtual Portuário</small>
+      </span>
+    </a>
+
+    <div class="topbar__actions">
+      <span class="version-badge" title="Versão atual">v0.39.0</span>
+      <button id="qualityButton" class="chip-button" type="button" title="Alterar perfil gráfico">
+        <span aria-hidden="true">◈</span>
+        <span id="qualityLabel">AUTO</span>
+      </button>
+      <button id="themeButton" class="icon-button" type="button" aria-label="Alternar tema" title="Alternar tema">◐</button>
+    </div>
+  </header>
+
+  <main id="app" class="app-shell" tabindex="-1" aria-live="polite"></main>
+  <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <noscript><div class="noscript">Esta plataforma precisa de JavaScript habilitado.</div></noscript>
+  <script type="module" src="./assets/js/core/app.js"></script>
+</body>
+</html>

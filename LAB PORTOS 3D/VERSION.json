@@ -1,0 +1,7 @@
+{
+  "version": "0.39.0",
+  "date": "2026-08-08",
+  "channel": "stable",
+  "base": "0.38.0",
+  "title": "Port Call Analytics — Histórico, Turnaround, Eventos e Dashboard"
+}
